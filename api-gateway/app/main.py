@@ -293,19 +293,19 @@ async def get_all_customers():
 
 
 @app.get("/api/customers/{customer_id}", tags=["Customers"])
-async def get_customer(customer_id: int):
+async def get_customer(customer_id: str):
     """Get a specific customer by ID"""
     return await proxy_request("customer-service", "GET", f"/customers/{customer_id}")
 
 
 @app.put("/api/customers/{customer_id}", tags=["Customers"])
-async def update_customer(customer_id: int, customer_data: dict):
+async def update_customer(customer_id: str, customer_data: dict):
     """Update a customer"""
     return await proxy_request("customer-service", "PUT", f"/customers/{customer_id}", body=customer_data)
 
 
 @app.delete("/api/customers/{customer_id}", tags=["Customers"])
-async def delete_customer(customer_id: int):
+async def delete_customer(customer_id: str):
     """Delete a customer"""
     return await proxy_request("customer-service", "DELETE", f"/customers/{customer_id}")
 
