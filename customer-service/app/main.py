@@ -1,20 +1,42 @@
-import os
-from fastapi import FastAPI, Request, status
-from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from dotenv import load_dotenv
+"""
+Customer Service - Microservice for managing customers
+"""
 
-from .routes import router
+import os
+import logging
+from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 # Load environment variables
 load_dotenv()
 
-# Create FastAPI app
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Manage application lifecycle
+    """
+    logger.info("Customer Service started")
+    yield
+    logger.info("Customer Service shutdown")
+
+
+# Initialize FastAPI app
 app = FastAPI(
     title="Customer Service",
-    description="Microservice for managing customer details, registration, and profiles",
+    description="Microservice for managing customers",
     version="1.0.0",
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -26,46 +48,97 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routes
-app.include_router(router)
 
+# ============================================================================
+# HEALTH CHECK
+# ============================================================================
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        content={
-            "success": False,
-            "message": "Validation Error",
-            "details": exc.errors(),
-        },
-    )
-
-
-@app.get("/health", tags=["health"])
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy", "service": "customer-service"}
-
-
-@app.get("/", tags=["root"])
+@app.get("/", tags=["Health"])
 async def root():
-    """Root endpoint"""
+    """Root endpoint - Service status"""
     return {
-        "message": "Customer Service API",
-        "version": "1.0.0",
-        "endpoints": {
-            "register": "POST /customers/register",
-            "login": "POST /customers/login",
-            "get_all": "GET /customers",
-            "get_by_id": "GET /customers/{customer_id}",
-            "update": "PUT /customers/{customer_id}",
-            "delete": "DELETE /customers/{customer_id}",
-        }
+        "status": "running",
+        "service": "Customer Service",
+        "version": "1.0.0"
     }
 
 
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "customer-service"
+    }
+
+
+# ============================================================================
+# CUSTOMER ENDPOINTS
+# ============================================================================
+
+# TODO: Integrate with app.database for MongoDB operations
+# TODO: Implement customer routes using app.routes
+
+@app.post("/customers", tags=["Customers"])
+async def create_customer(customer_data: dict):
+    """Create a new customer"""
+    return {
+        "message": "Customer created successfully",
+        "customer": customer_data
+    }
+
+
+@app.get("/customers", tags=["Customers"])
+async def get_all_customers():
+    """Get all customers"""
+    return {
+        "customers": []
+    }
+
+
+@app.get("/customers/{customer_id}", tags=["Customers"])
+async def get_customer(customer_id: int):
+    """Get a specific customer by ID"""
+    return {
+        "customer_id": customer_id,
+        "message": "Customer retrieved"
+    }
+
+
+@app.put("/customers/{customer_id}", tags=["Customers"])
+async def update_customer(customer_id: int, customer_data: dict):
+    """Update a customer"""
+    return {
+        "message": "Customer updated successfully",
+        "customer_id": customer_id,
+        "customer": customer_data
+    }
+
+
+@app.delete("/customers/{customer_id}", tags=["Customers"])
+async def delete_customer(customer_id: int):
+    """Delete a customer"""
+    return {
+        "message": "Customer deleted successfully",
+        "customer_id": customer_id
+    }
+
+
+# ============================================================================
+# APPLICATION STARTUP
+# ============================================================================
+
 if __name__ == "__main__":
-    import uvicorn
+    host = os.getenv("CUSTOMER_SERVICE_HOST", "0.0.0.0")
     port = int(os.getenv("SERVICE_PORT", 8001))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    reload = os.getenv("DEBUG", "False").lower() == "true"
+    
+    logger.info(f"Starting Customer Service on {host}:{port}")
+    
+    uvicorn.run(
+        "main:app",
+        host=host,
+        port=port,
+        reload=reload,
+        log_level="info"
+    )
