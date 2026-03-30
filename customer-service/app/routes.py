@@ -294,6 +294,100 @@ async def update_customer(customer_id: str, request: UpdateProfileRequest):
     )
 
 
+@router.patch("/{customer_id}", response_model=CustomerDetailResponse)
+async def patch_customer(customer_id: str, request: UpdateProfileRequest):
+    """Partially update customer profile (PATCH)"""
+    customers = get_customers_collection()
+
+    # Find customer
+    customer = customers.find_one({"customer_id": customer_id})
+    if not customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Customer not found"
+        )
+
+    # Prepare update data (only update provided fields)
+    update_data = {}
+    
+    if request.name is not None:
+        if len(request.name) < 1 or len(request.name) > 100:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Name must be between 1 and 100 characters"
+            )
+        update_data["name"] = request.name
+
+    if request.phone is not None:
+        if not validate_phone(request.phone):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid phone number format"
+            )
+        update_data["phone"] = request.phone
+
+    if request.address is not None:
+        if len(request.address) < 5 or len(request.address) > 500:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Address must be between 5 and 500 characters"
+            )
+        update_data["address"] = request.address
+
+    if request.city is not None:
+        update_data["city"] = request.city
+
+    if request.state is not None:
+        update_data["state"] = request.state
+
+    if request.postal_code is not None:
+        update_data["postal_code"] = request.postal_code
+
+    # If no fields to update, return current customer
+    if not update_data:
+        return CustomerDetailResponse(
+            customer_id=customer["customer_id"],
+            name=customer["name"],
+            email=customer["email"],
+            phone=customer["phone"],
+            address=customer["address"],
+            city=customer.get("city"),
+            state=customer.get("state"),
+            postal_code=customer.get("postal_code"),
+            created_at=customer["created_at"].isoformat(),
+            updated_at=customer["updated_at"].isoformat(),
+        )
+
+    # Always update the updated_at timestamp when changes are made
+    update_data["updated_at"] = datetime.utcnow()
+
+    # Update customer
+    result = customers.find_one_and_update(
+        {"customer_id": customer_id},
+        {"$set": update_data},
+        return_document=True
+    )
+
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update customer"
+        )
+
+    return CustomerDetailResponse(
+        customer_id=result["customer_id"],
+        name=result["name"],
+        email=result["email"],
+        phone=result["phone"],
+        address=result["address"],
+        city=result.get("city"),
+        state=result.get("state"),
+        postal_code=result.get("postal_code"),
+        created_at=result["created_at"].isoformat(),
+        updated_at=result["updated_at"].isoformat(),
+    )
+
+
 @router.delete("/{customer_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_customer(customer_id: str):
     """Delete a customer"""
