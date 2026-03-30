@@ -215,29 +215,17 @@ async def get_customer_by_id(customer_id: str):
     )
 
 
-@router.put("/{customer_id}", response_model=CustomerDetailResponse)
-async def update_customer(customer_id: str, request: UpdateProfileRequest):
-    """Update customer profile"""
-    customers = get_customers_collection()
+def _build_update_data(request: UpdateProfileRequest):
+    """Validate and build update payload for a customer profile"""
+    data = {}
 
-    # Find customer
-    customer = customers.find_one({"customer_id": customer_id})
-    if not customer:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Customer not found"
-        )
-
-    # Prepare update data
-    update_data = {}
-    
     if request.name is not None:
         if len(request.name) < 1 or len(request.name) > 100:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Name must be between 1 and 100 characters"
             )
-        update_data["name"] = request.name
+        data["name"] = request.name
 
     if request.phone is not None:
         if not validate_phone(request.phone):
@@ -245,7 +233,7 @@ async def update_customer(customer_id: str, request: UpdateProfileRequest):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid phone number format"
             )
-        update_data["phone"] = request.phone
+        data["phone"] = request.phone
 
     if request.address is not None:
         if len(request.address) < 5 or len(request.address) > 500:
@@ -253,25 +241,89 @@ async def update_customer(customer_id: str, request: UpdateProfileRequest):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Address must be between 5 and 500 characters"
             )
-        update_data["address"] = request.address
+        data["address"] = request.address
 
     if request.city is not None:
-        update_data["city"] = request.city
+        data["city"] = request.city
 
     if request.state is not None:
-        update_data["state"] = request.state
+        data["state"] = request.state
 
     if request.postal_code is not None:
-        update_data["postal_code"] = request.postal_code
+        data["postal_code"] = request.postal_code
 
-    # Always update the updated_at timestamp
+    return data
+
+
+async def _apply_customer_update(customer_id: str, request: UpdateProfileRequest):
+    customers = get_customers_collection()
+
+    customer = customers.find_one({"customer_id": customer_id})
+    if not customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Customer not found"
+        )
+
+    update_data = _build_update_data(request)
+    if not update_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No update fields provided"
+        )
+
     update_data["updated_at"] = datetime.utcnow()
 
-    # Update customer
     result = customers.find_one_and_update(
         {"customer_id": customer_id},
         {"$set": update_data},
         return_document=True
+    )
+
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update customer"
+        )
+
+    return result
+
+
+@router.put("/{customer_id}", response_model=CustomerDetailResponse)
+async def update_customer(customer_id: str, request: UpdateProfileRequest):
+    """Update customer profile"""
+    result = await _apply_customer_update(customer_id, request)
+
+    return CustomerDetailResponse(
+        customer_id=result["customer_id"],
+        name=result["name"],
+        email=result["email"],
+        phone=result["phone"],
+        address=result["address"],
+        city=result.get("city"),
+        state=result.get("state"),
+        postal_code=result.get("postal_code"),
+        created_at=result["created_at"].isoformat(),
+        updated_at=result["updated_at"].isoformat(),
+    )
+
+
+@router.patch("/{customer_id}", response_model=CustomerDetailResponse)
+async def patch_customer(customer_id: str, request: UpdateProfileRequest):
+    """Partially update customer profile"""
+    result = await _apply_customer_update(customer_id, request)
+
+    return CustomerDetailResponse(
+        customer_id=result["customer_id"],
+        name=result["name"],
+        email=result["email"],
+        phone=result["phone"],
+        address=result["address"],
+        city=result.get("city"),
+        state=result.get("state"),
+        postal_code=result.get("postal_code"),
+        created_at=result["created_at"].isoformat(),
+        updated_at=result["updated_at"].isoformat(),
     )
 
     if not result:
