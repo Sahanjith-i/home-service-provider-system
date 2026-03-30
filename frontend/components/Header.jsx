@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { useAuthStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Header() {
   const { isAuthenticated, customer, logout } = useAuthStore()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -20,6 +21,12 @@ export default function Header() {
     { href: '/register', label: 'Register' },
     { href: '/login', label: 'Login' },
   ]
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  const showAuth = isHydrated ? isAuthenticated : false
 
   return (
     <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-50 animate-slide-down">
@@ -34,7 +41,7 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          {!isAuthenticated && navLinks.map((link) => (
+          {!showAuth && navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -48,7 +55,7 @@ export default function Header() {
 
         {/* Auth Section */}
         <div className="hidden md:flex gap-4 items-center">
-          {isAuthenticated ? (
+          {showAuth ? (
             <>
               <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white bg-opacity-10 backdrop-blur">
                 <div className="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-white text-sm font-bold">
@@ -103,7 +110,7 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden animate-slide-down border-t border-blue-500 border-opacity-30">
           <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-3">
-            {!isAuthenticated && navLinks.map((link, index) => (
+            {!showAuth && navLinks.map((link, index) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -113,7 +120,7 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            {isAuthenticated ? (
+            {showAuth ? (
               <>
                 <Link
                   href="/profile"

@@ -31,7 +31,7 @@ class LoginResponse(BaseModel):
     """Login response schema"""
     success: bool
     message: str
-    customer: Optional[dict] = None
+    customer: Optional["CustomerDetailResponse"] = None
     token: Optional[str] = None
 
 

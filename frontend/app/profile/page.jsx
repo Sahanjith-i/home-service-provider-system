@@ -31,7 +31,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-4 mb-4">
               <div className="w-16 h-16 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-3xl font-bold">
                 {/* Avatar placeholder */}
-                👤
+                {/* removed icon as requested */}
               </div>
               <div>
                 <h1 className="text-3xl font-bold">My Profile</h1>
