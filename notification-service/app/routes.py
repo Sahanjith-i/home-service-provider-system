@@ -13,6 +13,13 @@ router = APIRouter()
 def create_notification(notification: NotificationCreate):
     notification_dict = notification.model_dump()
 
+    # If still using `type`, normalize it to `notification_type`
+    if "type" in notification_dict and "notification_type" not in notification_dict:
+        notification_dict["notification_type"] = notification_dict["type"]
+
+    # remove temporary field `type` before insertion
+    notification_dict.pop("type", None)
+
     # 🔥 AUTO INCREMENT ID
     notification_dict["notification_id"] = f"N{get_next_sequence('notification_id'):04d}"
 
