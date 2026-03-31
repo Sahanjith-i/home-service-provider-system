@@ -12,4 +12,16 @@ app.include_router(router)
 
 @app.get("/")
 def root():
-    return {"message": "Service Provider Service is running"}
+    return {
+        "status": "running",
+        "service": "Service Provider Service",
+        "version": "1.0.0"
+    }
+
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "service": "service-provider-service"
+    }

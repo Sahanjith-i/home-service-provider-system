@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.database import collection, get_next_sequence
-from app.schemas import BookingCreate, BookingUpdate
+from app.schemas import BookingCreate, BookingResponse, BookingUpdate, MessageResponse
 from app.models import booking_helper
 
 router = APIRouter()
@@ -9,7 +9,7 @@ VALID_STATUS = ["pending", "confirmed", "completed", "cancelled"]
 
 
 # CREATE BOOKING
-@router.post("/bookings")
+@router.post("/bookings", response_model=BookingResponse)
 def create_booking(booking: BookingCreate):
     booking_dict = booking.dict()
 
@@ -23,7 +23,7 @@ def create_booking(booking: BookingCreate):
 
 
 # GET ALL BOOKINGS
-@router.get("/bookings")
+@router.get("/bookings", response_model=list[BookingResponse])
 def get_all_bookings():
     bookings = []
     for booking in collection.find():
@@ -32,7 +32,7 @@ def get_all_bookings():
 
 
 # GET BY booking_id
-@router.get("/bookings/{booking_id}")
+@router.get("/bookings/{booking_id}", response_model=BookingResponse)
 def get_booking(booking_id: str):
     booking = collection.find_one({"booking_id": booking_id})
     if booking:
@@ -42,7 +42,7 @@ def get_booking(booking_id: str):
 
 
 # UPDATE BY booking_id
-@router.put("/bookings/{booking_id}")
+@router.put("/bookings/{booking_id}", response_model=BookingResponse)
 def update_booking(booking_id: str, booking: BookingUpdate):
     update_data = {k: v for k, v in booking.dict().items() if v is not None}
 
@@ -62,7 +62,7 @@ def update_booking(booking_id: str, booking: BookingUpdate):
 
 
 # DELETE BY booking_id
-@router.delete("/bookings/{booking_id}")
+@router.delete("/bookings/{booking_id}", response_model=MessageResponse)
 def delete_booking(booking_id: str):
     result = collection.delete_one({"booking_id": booking_id})
 
@@ -73,7 +73,7 @@ def delete_booking(booking_id: str):
 
 
 # PATCH STATUS BY booking_id
-@router.patch("/bookings/{booking_id}/status")
+@router.patch("/bookings/{booking_id}/status", response_model=BookingResponse)
 def update_status(booking_id: str, status: str):
     if status not in VALID_STATUS:
         raise HTTPException(status_code=400, detail="Invalid status value")

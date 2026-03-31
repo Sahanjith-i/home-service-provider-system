@@ -25,3 +25,17 @@ class NotificationCreate(BaseModel):
         if v not in VALID_TYPES:
             raise ValueError("Invalid notification type")
         return v
+
+
+class NotificationResponse(BaseModel):
+    id: str
+    notification_id: str
+    user_id: str
+    message: str
+    notification_type: str
+    created_at: datetime
+    is_read: bool
+
+
+class MessageResponse(BaseModel):
+    message: str

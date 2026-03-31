@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from app.routes import router as booking_router
 
 # Load environment variables
 load_dotenv()
@@ -72,66 +73,8 @@ async def health_check():
     }
 
 
-# ============================================================================
-# BOOKING ENDPOINTS
-# ============================================================================
-
-# TODO: Integrate with app.database for MongoDB operations
-# TODO: Implement booking routes using app.routes
-
-@app.post("/bookings", tags=["Bookings"])
-async def create_booking(booking_data: dict):
-    """Create a new booking"""
-    return {
-        "message": "Booking created successfully",
-        "booking": booking_data
-    }
-
-
-@app.get("/bookings", tags=["Bookings"])
-async def get_all_bookings():
-    """Get all bookings"""
-    return {
-        "bookings": []
-    }
-
-
-@app.get("/bookings/{booking_id}", tags=["Bookings"])
-async def get_booking(booking_id: int):
-    """Get a specific booking by ID"""
-    return {
-        "booking_id": booking_id,
-        "message": "Booking retrieved"
-    }
-
-
-@app.put("/bookings/{booking_id}", tags=["Bookings"])
-async def update_booking(booking_id: int, booking_data: dict):
-    """Update a booking"""
-    return {
-        "message": "Booking updated successfully",
-        "booking_id": booking_id,
-        "booking": booking_data
-    }
-
-
-@app.patch("/bookings/{booking_id}/status", tags=["Bookings"])
-async def update_booking_status(booking_id: int, status: str):
-    """Update booking status"""
-    return {
-        "message": "Booking status updated successfully",
-        "booking_id": booking_id,
-        "status": status
-    }
-
-
-@app.delete("/bookings/{booking_id}", tags=["Bookings"])
-async def delete_booking(booking_id: int):
-    """Delete a booking"""
-    return {
-        "message": "Booking deleted successfully",
-        "booking_id": booking_id
-    }
+# Include booking CRUD routes backed by MongoDB
+app.include_router(booking_router, tags=["Bookings"])
 
 
 # ============================================================================

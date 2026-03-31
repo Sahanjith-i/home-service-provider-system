@@ -1,15 +1,13 @@
 from fastapi import APIRouter, HTTPException
-from bson import ObjectId
-from datetime import datetime
 from app.database import collection, get_next_sequence
-from app.schemas import NotificationCreate
+from app.schemas import MessageResponse, NotificationCreate, NotificationResponse
 from app.models import notification_helper
 
 router = APIRouter()
 
 
 # 🔹 CREATE NOTIFICATION
-@router.post("/notifications")
+@router.post("/notifications", response_model=NotificationResponse)
 def create_notification(notification: NotificationCreate):
     notification_dict = notification.model_dump()
 
@@ -30,7 +28,7 @@ def create_notification(notification: NotificationCreate):
 
 
 # 🔹 GET ALL
-@router.get("/notifications")
+@router.get("/notifications", response_model=list[NotificationResponse])
 def get_notifications():
     notifications = []
     for notification in collection.find():
@@ -39,7 +37,7 @@ def get_notifications():
 
 
 # 🔹 GET BY notification_id
-@router.get("/notifications/{notification_id}")
+@router.get("/notifications/{notification_id}", response_model=NotificationResponse)
 def get_notification(notification_id: str):
     notification = collection.find_one({"notification_id": notification_id})
 
@@ -50,7 +48,7 @@ def get_notification(notification_id: str):
 
 
 # 🔹 UPDATE
-@router.put("/notifications/{notification_id}")
+@router.put("/notifications/{notification_id}", response_model=NotificationResponse)
 def update_notification(notification_id: str, notification: NotificationCreate):
     update_data = notification.model_dump()
 
@@ -67,7 +65,7 @@ def update_notification(notification_id: str, notification: NotificationCreate):
 
 
 # 🔹 DELETE
-@router.delete("/notifications/{notification_id}")
+@router.delete("/notifications/{notification_id}", response_model=MessageResponse)
 def delete_notification(notification_id: str):
     result = collection.delete_one({"notification_id": notification_id})
 
@@ -78,7 +76,7 @@ def delete_notification(notification_id: str):
 
 
 # 🔹 PATCH → mark as read
-@router.patch("/notifications/{notification_id}/read")
+@router.patch("/notifications/{notification_id}/read", response_model=NotificationResponse)
 def mark_as_read(notification_id: str):
     result = collection.update_one(
         {"notification_id": notification_id},

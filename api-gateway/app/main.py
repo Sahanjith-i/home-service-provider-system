@@ -14,6 +14,17 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
+from .schemas import (
+    BookingCreateRequest,
+    BookingUpdateRequest,
+    LoginCustomerRequest,
+    NotificationRequest,
+    RegisterCustomerRequest,
+    ServiceProviderCreateRequest,
+    ServiceProviderUpdateRequest,
+    UpdateCustomerRequest,
+)
+
 load_dotenv()
 
 logging.basicConfig(
@@ -180,8 +191,13 @@ async def services_health():
 # ============================================================================
 
 @app.post("/api/providers", tags=["Service Providers"])
-async def create_provider(provider_data: dict):
-    return await proxy_request("service-provider-service", "POST", "/providers", body=provider_data)
+async def create_provider(provider_data: ServiceProviderCreateRequest):
+    return await proxy_request(
+        "service-provider-service",
+        "POST",
+        "/providers",
+        body=provider_data.model_dump(mode="json")
+    )
 
 
 @app.get("/api/providers", tags=["Service Providers"])
@@ -195,8 +211,13 @@ async def get_provider(provider_id: int):
 
 
 @app.put("/api/providers/{provider_id}", tags=["Service Providers"])
-async def update_provider(provider_id: int, provider_data: dict):
-    return await proxy_request("service-provider-service", "PUT", f"/providers/{provider_id}", body=provider_data)
+async def update_provider(provider_id: int, provider_data: ServiceProviderUpdateRequest):
+    return await proxy_request(
+        "service-provider-service",
+        "PUT",
+        f"/providers/{provider_id}",
+        body=provider_data.model_dump(mode="json")
+    )
 
 
 @app.patch("/api/providers/{provider_id}/phone", tags=["Service Providers"])
@@ -220,8 +241,13 @@ async def delete_provider(provider_id: int):
 # ============================================================================
 
 @app.post("/api/bookings", tags=["Bookings"])
-async def create_booking(booking_data: dict):
-    return await proxy_request("booking-service", "POST", "/bookings", body=booking_data)
+async def create_booking(booking_data: BookingCreateRequest):
+    return await proxy_request(
+        "booking-service",
+        "POST",
+        "/bookings",
+        body=booking_data.model_dump(mode="json")
+    )
 
 
 @app.get("/api/bookings", tags=["Bookings"])
@@ -235,8 +261,13 @@ async def get_booking(booking_id: str):
 
 
 @app.put("/api/bookings/{booking_id}", tags=["Bookings"])
-async def update_booking(booking_id: str, booking_data: dict):
-    return await proxy_request("booking-service", "PUT", f"/bookings/{booking_id}", body=booking_data)
+async def update_booking(booking_id: str, booking_data: BookingUpdateRequest):
+    return await proxy_request(
+        "booking-service",
+        "PUT",
+        f"/bookings/{booking_id}",
+        body=booking_data.model_dump(mode="json")
+    )
 
 
 @app.patch("/api/bookings/{booking_id}/status", tags=["Bookings"])
@@ -261,18 +292,33 @@ async def delete_booking(booking_id: str):
 # ============================================================================
 
 @app.post("/api/customers/register", tags=["Customers"])
-async def register_customer(customer_data: dict):
-    return await proxy_request("customer-service", "POST", "/customers/register", body=customer_data)
+async def register_customer(customer_data: RegisterCustomerRequest):
+    return await proxy_request(
+        "customer-service",
+        "POST",
+        "/customers/register",
+        body=customer_data.model_dump(mode="json")
+    )
 
 
 @app.post("/api/customers/login", tags=["Customers"])
-async def login_customer(login_data: dict):
-    return await proxy_request("customer-service", "POST", "/customers/login", body=login_data)
+async def login_customer(login_data: LoginCustomerRequest):
+    return await proxy_request(
+        "customer-service",
+        "POST",
+        "/customers/login",
+        body=login_data.model_dump(mode="json")
+    )
 
 
 @app.post("/api/customers", tags=["Customers"])
-async def create_customer(customer_data: dict):
-    return await proxy_request("customer-service", "POST", "/customers", body=customer_data)
+async def create_customer(customer_data: RegisterCustomerRequest):
+    return await proxy_request(
+        "customer-service",
+        "POST",
+        "/customers",
+        body=customer_data.model_dump(mode="json")
+    )
 
 
 @app.get("/api/customers", tags=["Customers"])
@@ -291,8 +337,13 @@ async def get_customer(customer_id: str):
 
 
 @app.put("/api/customers/{customer_id}", tags=["Customers"])
-async def update_customer(customer_id: str, customer_data: dict):
-    return await proxy_request("customer-service", "PUT", f"/customers/{customer_id}", body=customer_data)
+async def update_customer(customer_id: str, customer_data: UpdateCustomerRequest):
+    return await proxy_request(
+        "customer-service",
+        "PUT",
+        f"/customers/{customer_id}",
+        body=customer_data.model_dump(mode="json")
+    )
 
 
 @app.delete("/api/customers/{customer_id}", tags=["Customers"])
@@ -308,8 +359,13 @@ async def delete_customer(customer_id: str):
 # ============================================================================
 
 @app.post("/api/notifications", tags=["Notifications"])
-async def send_notification(notification_data: dict):
-    return await proxy_request("notification-service", "POST", "/api/notifications", body=notification_data)
+async def send_notification(notification_data: NotificationRequest):
+    return await proxy_request(
+        "notification-service",
+        "POST",
+        "/api/notifications",
+        body=notification_data.model_dump(mode="json")
+    )
 
 
 @app.get("/api/notifications", tags=["Notifications"])
@@ -323,8 +379,13 @@ async def get_notification(notification_id: str):
 
 
 @app.put("/api/notifications/{notification_id}", tags=["Notifications"])
-async def update_notification(notification_id: str, notification_data: dict):
-    return await proxy_request("notification-service", "PUT", f"/api/notifications/{notification_id}", body=notification_data)
+async def update_notification(notification_id: str, notification_data: NotificationRequest):
+    return await proxy_request(
+        "notification-service",
+        "PUT",
+        f"/api/notifications/{notification_id}",
+        body=notification_data.model_dump(mode="json")
+    )
 
 
 @app.patch("/api/notifications/{notification_id}/read", tags=["Notifications"])

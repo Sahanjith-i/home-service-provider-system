@@ -48,6 +48,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/", tags=["Health"])
+async def root():
+    return {
+        "status": "running",
+        "service": "Notification Service",
+        "version": "1.0.0"
+    }
+
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    return {
+        "status": "healthy",
+        "service": "notification-service"
+    }
+
 # Include routes
 from app.routes import router as notification_router
 app.include_router(notification_router, prefix="/api", tags=["Notifications"])

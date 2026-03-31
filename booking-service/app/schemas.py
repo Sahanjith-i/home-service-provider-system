@@ -49,3 +49,18 @@ class BookingUpdate(BaseModel):
         if v and v not in VALID_STATUS:
             raise ValueError("Invalid status")
         return v
+
+
+class BookingResponse(BaseModel):
+    id: str
+    booking_id: str
+    customer_id: str
+    provider_id: str
+    service_type: str
+    booking_date: datetime
+    address: str
+    status: str
+
+
+class MessageResponse(BaseModel):
+    message: str

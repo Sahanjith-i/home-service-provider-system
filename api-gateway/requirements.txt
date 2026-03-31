@@ -2,5 +2,4 @@ fastapi==0.135.2
 uvicorn==0.42.0
 httpx==0.28.1
 python-dotenv==1.2.2
-pydantic==2.12.5</content>
-<parameter name="filePath">d:\home-service-provider-system\api-gateway\requirements.txt
+pydantic==2.12.5

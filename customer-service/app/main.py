@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from .routes import router as customer_router
 
 # Load environment variables
 load_dotenv()
@@ -72,56 +73,8 @@ async def health_check():
     }
 
 
-# ============================================================================
-# CUSTOMER ENDPOINTS
-# ============================================================================
-
-# TODO: Integrate with app.database for MongoDB operations
-# TODO: Implement customer routes using app.routes
-
-@app.post("/customers", tags=["Customers"])
-async def create_customer(customer_data: dict):
-    """Create a new customer"""
-    return {
-        "message": "Customer created successfully",
-        "customer": customer_data
-    }
-
-
-@app.get("/customers", tags=["Customers"])
-async def get_all_customers():
-    """Get all customers"""
-    return {
-        "customers": []
-    }
-
-
-@app.get("/customers/{customer_id}", tags=["Customers"])
-async def get_customer(customer_id: int):
-    """Get a specific customer by ID"""
-    return {
-        "customer_id": customer_id,
-        "message": "Customer retrieved"
-    }
-
-
-@app.put("/customers/{customer_id}", tags=["Customers"])
-async def update_customer(customer_id: int, customer_data: dict):
-    """Update a customer"""
-    return {
-        "message": "Customer updated successfully",
-        "customer_id": customer_id,
-        "customer": customer_data
-    }
-
-
-@app.delete("/customers/{customer_id}", tags=["Customers"])
-async def delete_customer(customer_id: int):
-    """Delete a customer"""
-    return {
-        "message": "Customer deleted successfully",
-        "customer_id": customer_id
-    }
+# Include customer auth/profile routes backed by MongoDB
+app.include_router(customer_router)
 
 
 # ============================================================================

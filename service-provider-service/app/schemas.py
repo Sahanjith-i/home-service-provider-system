@@ -171,3 +171,22 @@ class ProviderPhoneUpdate(BaseModel):
         if not phone.startswith("0"):
             raise ValueError("Phone number must start with 0")
         return phone
+
+
+class ServiceProviderResponse(BaseModel):
+    provider_id: Optional[int] = None
+    name: str
+    service_type: str
+    phone: str
+    email: EmailStr
+    location: str
+    availability_status: str
+
+
+class ServiceProviderMutationResponse(BaseModel):
+    message: str
+    provider: ServiceProviderResponse
+
+
+class MessageResponse(BaseModel):
+    message: str

@@ -1,12 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from app.database import provider_collection, get_next_provider_id
-from app.schemas import ServiceProviderCreate, ServiceProviderUpdate
+from app.schemas import (
+    MessageResponse,
+    ServiceProviderCreate,
+    ServiceProviderMutationResponse,
+    ServiceProviderResponse,
+    ServiceProviderUpdate,
+)
 from app.models import provider_serializer, providers_serializer
 
 router = APIRouter()
 
 
-@router.post("/providers")
+@router.post("/providers", response_model=ServiceProviderMutationResponse)
 def create_provider(provider: ServiceProviderCreate):
     provider_dict = provider.dict()
     provider_dict["provider_id"] = get_next_provider_id()
@@ -20,13 +26,13 @@ def create_provider(provider: ServiceProviderCreate):
     }
 
 
-@router.get("/providers")
+@router.get("/providers", response_model=list[ServiceProviderResponse])
 def get_all_providers():
     providers = provider_collection.find().sort("provider_id", 1)
     return providers_serializer(providers)
 
 
-@router.get("/providers/{provider_id}")
+@router.get("/providers/{provider_id}", response_model=ServiceProviderResponse)
 def get_provider_by_id(provider_id: int):
     provider = provider_collection.find_one({"provider_id": provider_id})
 
@@ -36,7 +42,7 @@ def get_provider_by_id(provider_id: int):
     return provider_serializer(provider)
 
 
-@router.put("/providers/{provider_id}")
+@router.put("/providers/{provider_id}", response_model=ServiceProviderMutationResponse)
 def update_provider(provider_id: int, provider: ServiceProviderUpdate):
     existing_provider = provider_collection.find_one({"provider_id": provider_id})
     if not existing_provider:
@@ -58,7 +64,7 @@ def update_provider(provider_id: int, provider: ServiceProviderUpdate):
     }
 
 
-@router.patch("/providers/{provider_id}/phone")
+@router.patch("/providers/{provider_id}/phone", response_model=ServiceProviderMutationResponse)
 def update_provider_phone(provider_id: int, phone: str):
     existing_provider = provider_collection.find_one({"provider_id": provider_id})
     if not existing_provider:
@@ -77,7 +83,7 @@ def update_provider_phone(provider_id: int, phone: str):
     }
 
 
-@router.delete("/providers/{provider_id}")
+@router.delete("/providers/{provider_id}", response_model=MessageResponse)
 def delete_provider(provider_id: int):
     existing_provider = provider_collection.find_one({"provider_id": provider_id})
     if not existing_provider:
