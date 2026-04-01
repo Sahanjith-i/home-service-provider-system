@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from typing import Optional
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
@@ -111,6 +111,9 @@ async def proxy_request(
                 status_code=response.status_code,
                 detail=detail
             )
+
+        if response.status_code == status.HTTP_204_NO_CONTENT or not response.content:
+            return Response(status_code=response.status_code)
 
         if "application/json" in content_type:
             return response.json()
@@ -308,16 +311,6 @@ async def login_customer(login_data: LoginCustomerRequest):
         "POST",
         "/customers/login",
         body=login_data.model_dump(mode="json")
-    )
-
-
-@app.post("/api/customers", tags=["Customers"])
-async def create_customer(customer_data: RegisterCustomerRequest):
-    return await proxy_request(
-        "customer-service",
-        "POST",
-        "/customers",
-        body=customer_data.model_dump(mode="json")
     )
 
 
